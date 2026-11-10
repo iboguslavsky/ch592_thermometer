@@ -9,7 +9,7 @@ Auto-discovered out of the box by **Home Assistant** (via native Bluetooth or ES
 ## Operation & Zero-Self-Heating Architecture
 
 1. **60-Second RTC Deep Sleep (`SBP_PERIODIC_EVT`)**:
-   - The CH592F sleeps in `HAL_SLEEP=TRUE` deep sleep (**`< 4 µA`** with the external `TTP223B` touch IC removed; `~7.5 µA` if `TTP223B` remains populated) with `R8_TEM_SENSOR = 0` and `R8_ADC_CFG = 0` (`0.0 µA` sensor leakage), waking every **60 seconds** via the hardware 32 kHz RTC timer.
+   - The CH592F sleeps in `HAL_SLEEP=TRUE` deep sleep (**`< 4 µA`**) with `R8_TEM_SENSOR = 0` and `R8_ADC_CFG = 0` (`0.0 µA` sensor leakage), waking every **60 seconds** via the hardware 32 kHz RTC timer.
    - Pressing **`PB22` (`BOOT`)** wakes the MCU immediately (with a `400 ms` contact-bounce lockout), blips the **`PB15` LED** for `5 ms`, and broadcasts an on-demand measurement burst without disturbing the 60-second RTC schedule.
 2. **Pre-RF Sampling & Channel Settling (Zero Silicon Self-Heating)**:
    - Because the MCU dissipates only `~12 µW` during the 60-second deep sleep, the silicon die is at exact thermal equilibrium with ambient room air (`0.000 °C` self-heating).
@@ -17,8 +17,8 @@ Auto-discovered out of the box by **Home Assistant** (via native Bluetooth or ES
 3. **300 ms BTHome v2 Broadcast Burst & Power Profile**:
    - Emits a 9–10 packet `ADV_NONCONN_IND` burst (`30 ms` interval, `300 ms` total duration at `+4 dBm`), sleeping at `< 4 µA` between individual `30 ms` advertising packets (`~300 µC` total charge per burst), then returns to deep sleep for 60 seconds.
    - Average radio current at 1 report/min is $\frac{300\text{ µC}}{60\text{ s}} \approx \mathbf{5.0\text{ µA}}$ (**`~8.8 µA` total average current** including `< 4 µA` deep sleep, yielding **~2.5–3 years** on a single CR2032 coin cell).
-4. **Hardware Notes (Sharing the 50 mm Clicker PCB)**:
-   - Leaving `U2` (`TTP223B`) unpopulated/removed eliminates its `~3.5 µA` quiescent current and reduces idle sleep draw below **`4 µA`**. `PB14` is parked in `GPIO_ModeIN_PD` (`0.0 µA` leakage).
+4. **Low-Power GPIO & USB PHY Management**:
+   - All unused GPIOs are parked in `GPIO_ModeIN_PD` (`0.0 µA` leakage), with only `PB22` (`BOOT`) configured as `GPIO_ModeIN_PU` for falling-edge wake.
    - The USB CDC ACM console (`PB10`/`PB11`) remains active for `1.5 s` at cold boot or when a USB host is connected, and automatically powers down the USB PHY to `0.0 µA` when running on battery, using a double-sampled passive host detector that is immune to RF TX transients.
 
 ---
