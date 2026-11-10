@@ -1,0 +1,9 @@
+build/
+tests/test_bthome_temp
+__pycache__/
+*.o
+*.d
+*.elf
+*.hex
+*.bin
+*.map
